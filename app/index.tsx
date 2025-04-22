@@ -16,6 +16,8 @@ export default function Login() {
     const [erroSenha, setErroSenha] = useState(false)
     const [mostrarSenha, setMostrarSenha] = useState(false)
 
+    const [sucesso, setSucesso] = useState (false)
+
     const [formularioValido, setFormularioValido] = useState(true)
 
     useEffect(() => {
@@ -49,20 +51,39 @@ export default function Login() {
         }
     }, [senha])
 
+useEffect(()=>{
+    if(sucesso){
+        const timer = setTimeout(()=> setSucesso(false), 3000);
+        return()=>clearTimeout(timer);
+    }
+}, [sucesso])
+
+
     async function Logar() {
         try {
-            const resposta = await api.post('/Usuario', {
+            const resposta = await api.post('/usuarios', {
             email: email,
             senha: senha
-            })
-
-            console.log(resposta.data)
+            });
+            if(resposta.status===201){
+                setSucesso(true)
+                alert("Cadastro com Sucesso")
+            }
         }
-        catch (error) {
-           Alert.alert(
-            "ops",
-            "email ou senha incorreto",
-           )
+        catch (error : any) {
+            if(error.response){
+                if(error.resrponse.status === 409){
+                    alert("Email ja esta cadastrado")
+                }
+                else if(error.resonse.status === 500){
+                    alert("Erro do servidor")
+                }
+                else {
+                    alert(`Erro ao cadastrar:${error.response.status} `);
+                }
+            }else {
+                alert("Erro de conexão")
+            }
         }
     }
 
@@ -106,8 +127,10 @@ export default function Login() {
 
             <Acoes>
                 <Button
-                    disabled={formularioValido}
-                    onPress={() => Logar()}>
+                    disable={formularioValido}
+                    onPress={() =>{
+                        Logar()
+                    }}>
                     <ButtonText>Criar minha conta</ButtonText>
             
                 </Button>
@@ -118,7 +141,7 @@ export default function Login() {
 }
 const Tela = styled.View`
     flex: 1;
-    background-color: #ebde55;
+    background-color: #f7ea64;
     padding: 26px;
 `;
 
